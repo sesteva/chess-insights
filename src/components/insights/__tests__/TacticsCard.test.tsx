@@ -18,6 +18,9 @@ describe('TacticsCard', () => {
   it('renders stats when loading=false and stats provided', () => {
     render(<TacticsCard stats={sampleStats} loading={false} />)
     expect(screen.getByText('10')).toBeInTheDocument() // gamesAnalyzed
+    expect(screen.getByText('3')).toBeInTheDocument()  // matesPlayed
+    expect(screen.getByText('2')).toBeInTheDocument()  // missedMates
+    expect(screen.getByText('60%')).toBeInTheDocument() // mateFoundPct
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 
@@ -25,5 +28,12 @@ describe('TacticsCard', () => {
     render(<TacticsCard stats={null} loading={false} />)
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
     expect(screen.getByText(/no data/i)).toBeInTheDocument()
+  })
+
+  it('shows no-opportunities message when games analyzed but no mates found', () => {
+    const zeroStats: TacticsStats = { gamesAnalyzed: 5, missedMates: 0, matesPlayed: 0 }
+    render(<TacticsCard stats={zeroStats} loading={false} />)
+    expect(screen.getByText(/no mate-in-1 opportunities detected/i)).toBeInTheDocument()
+    expect(screen.getByText('—')).toBeInTheDocument() // mateFoundPct placeholder
   })
 })

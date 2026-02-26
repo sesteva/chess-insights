@@ -120,7 +120,7 @@ describe('useLoadPlayerData', () => {
     })
   })
 
-  it('caps at the 30 most recent games when total exceeds 30', async () => {
+  it('caps at the 200 most recent games when total exceeds 200', async () => {
     const archives = [
       makeArchiveUrl(2025, '10'),
       makeArchiveUrl(2025, '11'),
@@ -128,22 +128,22 @@ describe('useLoadPlayerData', () => {
     ]
     vi.mocked(fetchGameArchives).mockResolvedValue(archives)
 
-    // 20 games per month: oldest first (end_time 1..20, 21..40, 41..60)
+    // 100 games per month: oldest first (end_times 1..100, 101..200, 201..300)
     vi.mocked(fetchMonthlyGames)
-      .mockResolvedValueOnce(makeGames(20, 1))    // end_times 1–20
-      .mockResolvedValueOnce(makeGames(20, 21))   // end_times 21–40
-      .mockResolvedValueOnce(makeGames(20, 41))   // end_times 41–60
+      .mockResolvedValueOnce(makeGames(100, 1))    // end_times 1–100
+      .mockResolvedValueOnce(makeGames(100, 101))  // end_times 101–200
+      .mockResolvedValueOnce(makeGames(100, 201))  // end_times 201–300
 
     const { result } = renderHook(() => useLoadPlayerData())
     await result.current.load('testplayer')
 
     const games = useGameStore.getState().games
-    expect(games).toHaveLength(30)
+    expect(games).toHaveLength(200)
 
-    // Should be the 30 newest: end_times 31–60
+    // Should be the 200 newest: end_times 101–300
     const endTimes = games.map((g) => g.end_time).sort((a, b) => a - b)
-    expect(endTimes[0]).toBe(31)
-    expect(endTimes[29]).toBe(60)
+    expect(endTimes[0]).toBe(101)
+    expect(endTimes[199]).toBe(300)
   })
 
   it('sets totalMonths based on sliced archive count, not full archive list', async () => {

@@ -35,7 +35,7 @@ export function useLoadPlayerData() {
 
     const testCfg = (window as any).__CHESS_TEST__ ?? {}
     const monthsLimit: number = testCfg.monthsLimit ?? 3
-    const gameLimit: number   = testCfg.gameLimit   ?? 30
+    const gameLimit: number   = testCfg.gameLimit   ?? 200
 
     try {
       // 1. Fetch profile and stats in parallel

@@ -7,7 +7,7 @@ import * as path from 'path'
 const N_VALUES = [30, 50, 75, 100, 150, 200, 300, 500]
 const JANK_MS  = 50
 const SEVERE_MS = 300
-const FAIL_MS  = parseInt(process.env.CHESS_TEST_FAIL_MS ?? '500')
+const FAIL_MS  = Number(process.env.CHESS_TEST_FAIL_MS ?? '500')
 const USERNAME = process.env.CHESS_TEST_USERNAME ?? 'hikaru'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -46,7 +46,7 @@ function printTable(results: RunResult[], username: string): void {
       fmt(r.totalLongTaskDuration).padEnd(12),
       r.longTaskCount.toString().padEnd(9),
       fmtS(r.timeToRender).padEnd(15),
-      `+${r.heapDeltaMB.toFixed(1)} MB`,
+      `${r.heapDeltaMB >= 0 ? '+' : ''}${r.heapDeltaMB.toFixed(1)} MB`,
     ].join(' | ')
     console.log(row)
   }
@@ -66,13 +66,14 @@ function writeCsv(results: RunResult[]): void {
   const rows = results.map(r =>
     `${r.n},${r.longestTask.toFixed(0)},${r.totalLongTaskDuration.toFixed(0)},${r.longTaskCount},${r.timeToRender},${r.heapDeltaMB.toFixed(1)},${r.error ?? ''}`
   ).join('\n')
+  fs.mkdirSync(path.join('tests', 'load'), { recursive: true })
   fs.writeFileSync(csvPath, header + rows)
   console.log(`Results written to ${csvPath}`)
 }
 
 // ─── Test ──────────────────────────────────────────────────────────────────────
 
-test('game-limit sweep', async ({ browser }) => {
+test('game-limit sweep', { timeout: 20 * 60 * 1000 }, async ({ browser }) => {
   const results: RunResult[] = []
 
   for (const n of N_VALUES) {

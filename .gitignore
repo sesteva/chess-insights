@@ -32,3 +32,6 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+
+# Load test results (generated output — commit selectively)
+tests/load/results-*.csv

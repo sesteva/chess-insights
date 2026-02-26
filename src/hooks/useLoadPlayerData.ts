@@ -11,6 +11,7 @@ import {
   fetchGameArchives,
   fetchMonthlyGames,
   ChessApiError,
+  type ChessGame,
 } from '../services/chessApi'
 import { getCachedGames, setCachedGames } from '../utils/gameCache'
 
@@ -32,6 +33,10 @@ export function useLoadPlayerData() {
     setLoadingState('loading')
     setError(null)
 
+    const testCfg = (window as any).__CHESS_TEST__ ?? {}
+    const monthsLimit: number = testCfg.monthsLimit ?? 3
+    const gameLimit: number   = testCfg.gameLimit   ?? 30
+
     try {
       // 1. Fetch profile and stats in parallel
       const [profile, stats] = await Promise.all([
@@ -41,13 +46,14 @@ export function useLoadPlayerData() {
       setProfile(profile)
       setStats(stats)
 
-      // 2. Fetch archive list (all time)
+      // 2. Fetch archive list (last 3 months only)
       const archives = await fetchGameArchives(username)
-      setProgress({ totalMonths: archives.length, fetchedMonths: 0, totalGames: 0 })
+      const recentArchives = archives.slice(-monthsLimit)
+      setProgress({ totalMonths: recentArchives.length, fetchedMonths: 0, totalGames: 0 })
 
-      let totalGames = 0
-      for (let i = 0; i < archives.length; i++) {
-        const archiveUrl = archives[i]
+      const collectedGames: ChessGame[] = []
+      for (let i = 0; i < recentArchives.length; i++) {
+        const archiveUrl = recentArchives[i]
         // Extract year and month from archive URL: .../games/2024/03
         const match = archiveUrl.match(/\/games\/(\d{4})\/(\d{2})$/)
         if (!match) continue
@@ -62,11 +68,16 @@ export function useLoadPlayerData() {
           await setCachedGames(username, year, month, games)
         }
 
-        appendGames(games)
-        totalGames += games.length
-        setProgress({ fetchedMonths: i + 1, totalGames })
+        collectedGames.push(...games)
+        setProgress({ fetchedMonths: i + 1, totalGames: collectedGames.length })
       }
 
+      const finalGames = collectedGames.length > gameLimit
+        ? [...collectedGames].sort((a, b) => b.end_time - a.end_time).slice(0, gameLimit)
+        : collectedGames
+
+      appendGames(finalGames)
+      setProgress({ totalGames: finalGames.length })
       setLoadingState('success')
     } catch (err) {
       const message =

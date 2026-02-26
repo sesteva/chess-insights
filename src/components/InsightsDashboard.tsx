@@ -12,9 +12,9 @@ import {
   computeOpponentCountryStats,
   extractOpponentUsernames,
   computeActivityHeatmap,
-  computeTacticsStats,
 } from '../utils/gameAnalysis'
 import { useLoadOpponentCountries } from '../hooks/useLoadOpponentCountries'
+import { useTacticsWorker } from '../hooks/useTacticsWorker'
 import { OverviewCard } from './insights/OverviewCard'
 import { RatingChart } from './insights/RatingChart'
 import { OpeningsTable } from './insights/OpeningsTable'
@@ -71,7 +71,7 @@ export function InsightsDashboard() {
   const gamePhaseStats = useMemo(() => computeGamePhaseStats(filteredGames, user), [filteredGames, user])
   const pieceCounts    = useMemo(() => computePieceMoveFrequency(filteredGames, user), [filteredGames, user])
   const activityData   = useMemo(() => computeActivityHeatmap(filteredGames, user), [filteredGames, user])
-  const tacticsStats   = useMemo(() => computeTacticsStats(filteredGames, user), [filteredGames, user])
+  const { stats: tacticsStats, loading: tacticsLoading } = useTacticsWorker(filteredGames, user)
 
   const countryStats = useMemo(
     () => computeOpponentCountryStats(filteredGames, user, opponentCountries),
@@ -140,7 +140,7 @@ export function InsightsDashboard() {
         {/* Tactics */}
         <section>
           <h2 className="text-lg font-semibold text-gray-300 mb-4">Tactics</h2>
-          <TacticsCard stats={tacticsStats} />
+          <TacticsCard stats={tacticsStats} loading={tacticsLoading} />
         </section>
 
         {/* Game Phase */}

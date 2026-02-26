@@ -96,8 +96,8 @@ function writeCsv(results: RunResult[]): void {
 
 // ─── Test ──────────────────────────────────────────────────────────────────────
 
-// 8 runs × 30s max each (mocked API = fast), plus table/CSV overhead
-test('game-limit sweep', { timeout: 10 * 60 * 1000 }, async ({ browser }) => {
+// 8 runs — compute-bound (computeTacticsStats ≈ 1s/game), 45 min ceiling
+test('game-limit sweep', { timeout: 45 * 60 * 1000 }, async ({ browser }) => {
   const fixture = loadFixture()
   const { username, profile, stats, games: allGames } = fixture
   const fakeArchiveUrl = `https://api.chess.com/pub/player/${username}/games/${FAKE_YEAR}/${FAKE_MONTH}`
@@ -121,7 +121,7 @@ test('game-limit sweep', { timeout: 10 * 60 * 1000 }, async ({ browser }) => {
       } else if (url === `https://api.chess.com/pub/player/${username}/games/archives`) {
         await route.fulfill({ json: { archives: [fakeArchiveUrl] } })
       } else if (url === fakeArchiveUrl) {
-        await route.fulfill({ json: { games: allGames } })
+        await route.fulfill({ json: { games: allGames.slice(0, n) } })
       } else {
         // Opponent country lookups and other secondary calls — abort cleanly
         await route.abort()
@@ -147,7 +147,7 @@ test('game-limit sweep', { timeout: 10 * 60 * 1000 }, async ({ browser }) => {
       await page.goto('/')
       await page.getByRole('textbox').fill(username)
       await page.getByRole('button', { name: /analyze/i }).click()
-      await page.waitForSelector('[data-testid="insights-dashboard"]', { timeout: 30_000 })
+      await page.waitForSelector('[data-testid="insights-dashboard"]', { timeout: 10 * 60 * 1000 })
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
       console.log(`  ⚠ N=${n}: ${msg}`)

@@ -118,6 +118,21 @@ describe('extractOpening', () => {
     const pgn = '[ECO "C60"]\n1. e4 e5 *'
     expect(extractOpening(pgn).name).toBe('Unknown Opening')
   })
+
+  it('extracts opening name from ECOUrl when Opening tag is absent', () => {
+    const pgn = '[ECO "D02"]\n[ECOUrl "https://www.chess.com/openings/Queens-Pawn-Game-2.Nf3-Nf6-3.Bf4"]\n1. d4 Nf6 *'
+    expect(extractOpening(pgn).name).toBe('Queens Pawn Game')
+  })
+
+  it('extracts simple opening name from ECOUrl without moves', () => {
+    const pgn = '[ECO "B10"]\n[ECOUrl "https://www.chess.com/openings/Caro-Kann-Defense"]\n1. e4 c6 *'
+    expect(extractOpening(pgn).name).toBe('Caro Kann Defense')
+  })
+
+  it('prefers Opening tag over ECOUrl when both are present', () => {
+    const pgn = '[ECO "C60"]\n[Opening "Ruy Lopez"]\n[ECOUrl "https://www.chess.com/openings/Ruy-Lopez-Opening"]\n1. e4 e5 *'
+    expect(extractOpening(pgn).name).toBe('Ruy Lopez')
+  })
 })
 
 // ─── computeResultCounts ─────────────────────────────────────────────────────

@@ -7,7 +7,7 @@ import * as path from 'path'
 const N_VALUES = [30, 50, 75, 100, 150, 200, 300, 500]
 const JANK_MS  = 50
 const SEVERE_MS = 300
-const FAIL_MS  = Number(process.env.CHESS_TEST_FAIL_MS ?? '500')
+const FAIL_MS  = Number(process.env.CHESS_TEST_FAIL_MS || '500')
 const USERNAME = process.env.CHESS_TEST_USERNAME ?? 'hikaru'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────

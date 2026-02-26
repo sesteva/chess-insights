@@ -90,13 +90,37 @@ export function getResult(game: ChessGame, username: string): GameResult {
   return 'loss'
 }
 
+/** Derive a human-readable opening name from a Chess.com ECOUrl.
+ *  e.g. "https://www.chess.com/openings/Queens-Pawn-Game-2.Nf3-Nf6" → "Queens Pawn Game"
+ */
+function parseOpeningNameFromUrl(url: string): string {
+  const path = url.split('/openings/')[1]
+  if (!path) return 'Unknown Opening'
+  // Split on hyphens; stop when we hit a move-number token like "2.Nf3"
+  const nameParts: string[] = []
+  for (const part of path.split('-')) {
+    if (/^\d+\./.test(part)) break
+    nameParts.push(part)
+  }
+  return nameParts.join(' ') || 'Unknown Opening'
+}
+
 /** Extract ECO code and opening name from a PGN string */
 export function extractOpening(pgn: string): { eco: string; name: string } {
   const ecoMatch = pgn.match(/\[ECO "([^"]+)"\]/)
   const openingMatch = pgn.match(/\[Opening "([^"]+)"\]/)
+  const ecoUrlMatch = pgn.match(/\[ECOUrl "([^"]+)"\]/)
+
+  let name = 'Unknown Opening'
+  if (openingMatch?.[1]) {
+    name = openingMatch[1]
+  } else if (ecoUrlMatch?.[1]) {
+    name = parseOpeningNameFromUrl(ecoUrlMatch[1])
+  }
+
   return {
     eco: ecoMatch?.[1] ?? 'Unknown',
-    name: openingMatch?.[1] ?? 'Unknown Opening',
+    name,
   }
 }
 

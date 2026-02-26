@@ -83,7 +83,7 @@ export function InsightsDashboard() {
   )
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="min-h-screen bg-gray-950 text-white" data-testid="insights-dashboard">
       {/* Header */}
       <header className="bg-gray-900 border-b border-gray-800 px-4 sm:px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
